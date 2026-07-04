@@ -24,6 +24,8 @@ func Run() {
 		log.Fatal("failed to initialize database:", err)
 	}
 
+	defer db.GetDBConnection().DB.Close()
+
 	api.Init(rootPath)
 
 	err = http.ListenAndServe(":7540", nil)

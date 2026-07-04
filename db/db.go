@@ -6,6 +6,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+type DBConnection struct {
+	DB *sql.DB
+}
+
+var Database DBConnection
+
 const Schema string = `
 CREATE TABLE IF NOT EXISTS scheduler (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,8 +28,13 @@ func Init(dbPath string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
-	_, err = db.Exec(Schema)
+	Database = DBConnection{DB: db}
+
+	_, err = Database.DB.Exec(Schema)
 	return err
+}
+
+func GetDBConnection() DBConnection {
+	return Database
 }

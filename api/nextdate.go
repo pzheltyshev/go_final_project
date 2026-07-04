@@ -83,12 +83,6 @@ func NextDateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	/*err = r.ParseForm()
-	if err != nil {
-		http.Error(w, "Wrong parse form", http.StatusBadRequest)
-		return
-	}*/
-
 	nowStr := r.FormValue("now")
 
 	now := time.Now()
