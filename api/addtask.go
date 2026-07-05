@@ -22,9 +22,13 @@ func checkDate(task *db.Task) error {
 		return err
 	}
 
-	nextDate, err := NextDate(now, task.Date, task.Repeat)
-	if err != nil {
-		return err
+	var nextDate string
+
+	if len(task.Repeat) != 0 {
+		nextDate, err = NextDate(now, task.Date, task.Repeat)
+		if err != nil {
+			return err
+		}
 	}
 
 	if afterNow(now, t) {
@@ -51,36 +55,57 @@ func writeJson(w http.ResponseWriter, data any) {
 
 }
 
+func writeErrorJson(w http.ResponseWriter, error string) {
+
+	resp, err := json.Marshal(struct {
+		Error string `json:"error"`
+	}{Error: error})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(resp)
+
+}
+
 func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeErrorJson(w, err.Error())
+		//http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = json.Unmarshal(buf.Bytes(), &task)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeErrorJson(w, err.Error())
+		//http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if task.Title == "" {
-		http.Error(w, "Title is required", http.StatusBadRequest)
+		writeErrorJson(w, "Title is required")
+		//http.Error(w, "Title is required", http.StatusBadRequest)
 		return
 	}
 
 	err = checkDate(&task)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeErrorJson(w, err.Error())
+		//http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	id, err := db.AddTask(&task)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeErrorJson(w, err.Error())
+		//http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -89,4 +114,10 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	writeJson(w, struct {
 		ID string `json:"id"`
 	}{ID: task.ID})
+}
+
+func AddTest(w http.ResponseWriter, r *http.Request) {
+
+	writeErrorJson(w, "erro test")
+
 }
