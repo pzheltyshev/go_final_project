@@ -47,6 +47,10 @@ func Init(rootPath string) {
 
 	http.HandleFunc("POST /api/task", AddTaskHandler)
 
+	http.HandleFunc("GET /api/task", GetTaskHandler)
+
+	http.HandleFunc("PUT /api/task", PutTaskHandler)
+
 	http.HandleFunc("/api/tasks", tasksHandler)
 
 }

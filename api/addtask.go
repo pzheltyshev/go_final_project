@@ -47,6 +47,9 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(r.Body)
+
+	defer r.Body.Close()
+
 	if err != nil {
 		writeErrorJson(w, err.Error())
 		return

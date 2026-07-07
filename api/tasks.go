@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/pavel/go-final-project/db"
@@ -19,4 +21,50 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJson(w, TasksResp{Tasks: tasks})
+}
+
+func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("id")
+
+	task, err := db.GetTask(id)
+
+	if err != nil {
+		writeErrorJson(w, "Couldn't fill task by id")
+		return
+	}
+
+	task.ID = id
+
+	writeJson(w, task)
+
+}
+
+func PutTaskHandler(w http.ResponseWriter, r *http.Request) {
+
+	task := db.Task{}
+
+	body, err := io.ReadAll(r.Body)
+
+	defer r.Body.Close()
+
+	if err != nil {
+		writeErrorJson(w, "Couldn't get updated task")
+		return
+	}
+
+	err = json.Unmarshal(body, &task)
+	if err != nil {
+		writeErrorJson(w, "Invalid task format")
+		return
+	}
+
+	err = db.UpdateTask(&task)
+	if err != nil {
+		writeErrorJson(w, "Couldn't update task")
+		return
+	}
+
+	var emptyRes struct{}
+	writeJson(w, emptyRes)
 }
