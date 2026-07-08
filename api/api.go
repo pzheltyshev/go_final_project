@@ -53,4 +53,8 @@ func Init(rootPath string) {
 
 	http.HandleFunc("/api/tasks", tasksHandler)
 
+	http.HandleFunc("POST /api/task/done", DoneTaskHandler)
+
+	http.HandleFunc("DELETE /api/task", DeleteTaskHandler)
+
 }
