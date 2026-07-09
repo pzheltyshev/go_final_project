@@ -17,7 +17,11 @@ func Run() {
 	}
 
 	rootPath = filepath.Dir(rootPath)
-	dbPath := filepath.Join(rootPath, "scheduler.db")
+
+	dbPath := os.Getenv("TODO_DBFILE")
+	if len(dbPath) == 0 {
+		dbPath = filepath.Join(rootPath, "scheduler.db")
+	}
 
 	err = db.Init(dbPath)
 	if err != nil {
@@ -28,7 +32,12 @@ func Run() {
 
 	api.Init(rootPath)
 
-	err = http.ListenAndServe(":7540", nil)
+	port := os.Getenv("TODO_PORT")
+	if len(port) == 0 {
+		port = "7540"
+	}
+
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatal("failed to start server:", err)
 	}
