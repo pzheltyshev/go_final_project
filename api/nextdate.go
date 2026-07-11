@@ -131,6 +131,8 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		dx := 0
 		i := 0
 
+		count := len(mask)
+
 		for {
 			newDate = newDate.AddDate(0, 0, mask[i]+dx)
 
@@ -138,11 +140,11 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 				break
 			}
 
-			i++
-
-			if i == 6 {
+			if i == count-1 {
 				dx += 7
 				i = 0
+			} else {
+				i++
 			}
 
 		}
