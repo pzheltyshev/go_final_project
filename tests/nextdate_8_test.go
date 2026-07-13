@@ -44,3 +44,28 @@ func TestGetMaskWeek(t *testing.T) {
 	}
 
 }
+
+func TestNextDateCut(t *testing.T) {
+	tbl := []nextDate{
+		{"20230126", "w 4,5", "20240201"},
+	}
+	check := func() {
+		for _, v := range tbl {
+
+			now, err := time.Parse("20060102", "20240126")
+			if err != nil {
+				continue
+			}
+
+			got, err := api.NextDate(now, v.date, v.repeat)
+			if err != nil {
+				t.Error(err)
+				continue
+			}
+			assert.Equal(t, v.want, got)
+
+		}
+	}
+	check()
+
+}

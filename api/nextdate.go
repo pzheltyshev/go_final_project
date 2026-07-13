@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"slices"
@@ -53,6 +54,45 @@ func GetMaskWeek(dstart time.Time, repeat string) ([]int, error) {
 	sort.Ints(days)
 
 	return days, nil
+}
+
+func GetMonths(repeat string) ([]int, error) {
+
+	if len(repeat) == 0 {
+		return []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, nil
+	}
+
+	months := []int{}
+
+	monthsStr := strings.Split(repeat, ",")
+
+	for _, monthStr := range monthsStr {
+		month, err := strconv.Atoi(monthStr)
+		if err != nil {
+			return []int{}, err
+		}
+
+		if month < 1 || month > 12 {
+			return []int{}, errors.New("Wrong month format")
+		}
+
+		months = append(months, month)
+	}
+
+	sort.Ints(months)
+
+	return months, nil
+}
+
+func GetNums(repeat string) ([]int, error) {
+
+}
+
+func GetMonthDates(startDate time.Time, curDate time.Time, months []int, nums []int) []int {
+	// стартовая дата нужна чтобы сравнить дату в первой итерации потому что числа могут быть меньше чем день в текущем месяце
+	// тек месяц используется для понимания в каком месяце мы на данный момент находимся ! лучше заменить на дату!
+	// нужно проверить что текущий обрабатываемый месяц есть в month . если нет, то пустое возвращаем и по сути на месяц прокрутим вперед
+	// из nums нужно получить месяца для текущего прорабатываемого месяца
 }
 
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
@@ -134,9 +174,12 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		count := len(mask)
 
 		for {
-			newDate = newDate.AddDate(0, 0, mask[i]+dx)
+			testDate := newDate.AddDate(0, 0, mask[i]+dx)
 
-			if afterNow(newDate, now) {
+			fmt.Println("testDate " + testDate.Format(DateFormat) + " i " + strconv.Itoa(i) + " dx " + strconv.Itoa(dx) +
+				" mask " + strconv.Itoa(mask[i]))
+			if afterNow(testDate, now) {
+				newDate = testDate
 				break
 			}
 
@@ -150,6 +193,11 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 
 		return newDate.Format(DateFormat), nil
+	case "m":
+		if len(parts) != 2 {
+			return "", errors.New("Invalid month repeat format")
+		}
+
 	default:
 		return "", errors.New("Unsupported repeat type")
 	}
