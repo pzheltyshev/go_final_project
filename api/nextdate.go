@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"slices"
@@ -86,13 +85,74 @@ func GetMonths(repeat string) ([]int, error) {
 
 func GetNums(repeat string) ([]int, error) {
 
+	if len(repeat) == 0 {
+		return []int{}, errors.New("Wrong month format")
+	}
+
+	nums := []int{}
+
+	numsStr := strings.Split(repeat, ",")
+
+	for _, v := range numsStr {
+		num, err := strconv.Atoi(v)
+		if err != nil {
+			return []int{}, err
+		}
+
+		if num < -2 || num > 31 || num == 0 {
+			return []int{}, errors.New("Wrong month format")
+		}
+
+		if !slices.Contains(nums, num) {
+			nums = append(nums, num)
+		}
+	}
+
+	return nums, nil
 }
 
-func GetMonthDates(startDate time.Time, curDate time.Time, months []int, nums []int) []int {
-	// стартовая дата нужна чтобы сравнить дату в первой итерации потому что числа могут быть меньше чем день в текущем месяце
-	// тек месяц используется для понимания в каком месяце мы на данный момент находимся ! лучше заменить на дату!
-	// нужно проверить что текущий обрабатываемый месяц есть в month . если нет, то пустое возвращаем и по сути на месяц прокрутим вперед
-	// из nums нужно получить месяца для текущего прорабатываемого месяца
+func GetMonthDates(startDate time.Time, curDate time.Time, months *[]int, nums *[]int) []time.Time {
+
+	curMonth := int(curDate.Month())
+
+	if !slices.Contains(*months, curMonth) {
+		return []time.Time{}
+	}
+
+	dates := []time.Time{}
+	monthBeginning := time.Date(curDate.Year(), curDate.Month(), 1, 0, 0, 0, 0, curDate.Location())
+
+	var nextDate time.Time
+
+	for _, v := range *nums {
+		if v < 0 {
+
+			nextDate = monthBeginning.AddDate(0, 1, v)
+
+			//if nextDate.Month() != curDate.Month() {
+			//	nextDate = monthBeginning.AddDate(0, 1, -1)
+			//}
+
+		} else {
+			nextDate = monthBeginning.AddDate(0, 0, v-1)
+		}
+
+		if nextDate.Month() != curDate.Month() {
+			continue
+		}
+
+		if afterNow(startDate, nextDate) {
+			continue
+		}
+
+		dates = append(dates, nextDate)
+	}
+
+	sort.Slice(dates, func(i, j int) bool {
+		return dates[i].Before(dates[j])
+	})
+
+	return dates
 }
 
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
@@ -106,7 +166,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		return "", err
 	}
 
-	availableTypes := "dyw"
+	availableTypes := "dywm"
 
 	parts := strings.Split(repeat, " ")
 
@@ -176,8 +236,6 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		for {
 			testDate := newDate.AddDate(0, 0, mask[i]+dx)
 
-			fmt.Println("testDate " + testDate.Format(DateFormat) + " i " + strconv.Itoa(i) + " dx " + strconv.Itoa(dx) +
-				" mask " + strconv.Itoa(mask[i]))
 			if afterNow(testDate, now) {
 				newDate = testDate
 				break
@@ -194,10 +252,46 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 		return newDate.Format(DateFormat), nil
 	case "m":
-		if len(parts) != 2 {
+		if len(parts) < 2 || len(parts) > 3 {
 			return "", errors.New("Invalid month repeat format")
 		}
 
+		newDate = ds
+
+		curMonth := time.Date(newDate.Year(), newDate.Month(), 1, 0, 0, 0, 0, newDate.Location())
+
+		nums, err := GetNums(parts[1])
+		if err != nil {
+			return "", err
+		}
+
+		repeatM := ""
+		if len(parts) == 3 {
+			repeatM = parts[2]
+		}
+
+		months, err := GetMonths(repeatM)
+		if err != nil {
+			return "", err
+		}
+
+	outerLoop:
+		for {
+
+			dates := GetMonthDates(ds, curMonth, &months, &nums)
+
+			for _, date := range dates {
+				if afterNow(date, now) {
+					newDate = date
+					break outerLoop
+				}
+			}
+
+			curMonth = curMonth.AddDate(0, 1, 0)
+
+		}
+
+		return newDate.Format(DateFormat), nil
 	default:
 		return "", errors.New("Unsupported repeat type")
 	}
