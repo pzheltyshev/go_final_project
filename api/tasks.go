@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/pavel/go-final-project/db"
@@ -15,7 +16,41 @@ type TasksResp struct {
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 
-	tasks, err := db.Tasks(50)
+	query := r.URL.Query()
+
+	searchValue := ""
+
+	if query.Has("search") {
+		searchValue = query.Get("search")
+	}
+
+	var tasks []*db.Task
+	var err error
+
+	if len(searchValue) != 0 {
+
+		pattern := `^\d{2}\.\d{2}\.\d{4}$`
+
+		matched, err := regexp.MatchString(pattern, searchValue)
+		if err != nil {
+			writeErrorJson(w, "Wrong search param")
+			return
+		}
+
+		if matched {
+			date, err := time.Parse("02.01.2006", searchValue)
+			if err != nil {
+				writeErrorJson(w, "Invalid date format")
+				return
+			}
+			tasks, err = db.TasksByDate(date.Format(DateFormat), 50)
+		} else {
+			tasks, err = db.TasksByTitle(searchValue, 50)
+		}
+	} else {
+		tasks, err = db.Tasks(50)
+	}
+
 	if err != nil {
 		writeErrorJson(w, "Couldn't get tasks")
 		return

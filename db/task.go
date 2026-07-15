@@ -62,6 +62,58 @@ func Tasks(limit int) ([]*Task, error) {
 	return tasks, nil
 }
 
+func TasksByDate(dateStr string, limit int) ([]*Task, error) {
+
+	var tasks []*Task
+
+	tasks = make([]*Task, 0)
+
+	rows, err := GetDBConnection().DB.Query("SELECT id, date, title, comment, repeat FROM scheduler WHERE date = :date  LIMIT :limit",
+		sql.Named("limit", limit), sql.Named("date", dateStr))
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var task Task
+		err = rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, &task)
+	}
+
+	return tasks, nil
+}
+
+func TasksByTitle(title string, limit int) ([]*Task, error) {
+
+	var tasks []*Task
+
+	tasks = make([]*Task, 0)
+
+	rows, err := GetDBConnection().DB.Query("SELECT id, date, title, comment, repeat FROM scheduler WHERE title LIKE :title OR comment LIKE :title LIMIT :limit",
+		sql.Named("limit", limit), sql.Named("title", "%"+title+"%"))
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var task Task
+		err = rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, &task)
+	}
+
+	return tasks, nil
+}
+
 func GetTask(id string) (*Task, error) {
 
 	task := Task{}
