@@ -65,7 +65,8 @@ func TestApp(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%s: body=%d", fname, len(body))
+		fmt.Printf("%s: body=%s", fname, body)
+		fmt.Println()
 		assert.Equal(t, len(fbody), len(body), `сервер возвращает для %s данные другого размера`, fname)
 		return nil
 	}
