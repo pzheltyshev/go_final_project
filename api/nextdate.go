@@ -129,10 +129,6 @@ func GetMonthDates(startDate time.Time, curDate time.Time, months *[]int, nums *
 
 			nextDate = monthBeginning.AddDate(0, 1, v)
 
-			//if nextDate.Month() != curDate.Month() {
-			//	nextDate = monthBeginning.AddDate(0, 1, -1)
-			//}
-
 		} else {
 			nextDate = monthBeginning.AddDate(0, 0, v-1)
 		}
