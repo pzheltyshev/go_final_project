@@ -14,6 +14,14 @@ import (
 func Run() {
 	rootPath, err := os.Executable()
 	fmt.Println(rootPath)
+	dirs, err := os.ReadDir(rootPath)
+
+	for _, v := range dirs {
+
+		fmt.Println(v.Name())
+
+	}
+
 	if err != nil {
 		log.Fatal("failed to get executable path:", err)
 	}
