@@ -12,15 +12,22 @@ import (
 )
 
 func Run() {
+
 	rootPath, err := os.Executable()
 
 	rootPath = filepath.Dir(rootPath)
 	fmt.Println(rootPath)
+
 	dirs, err := os.ReadDir(rootPath)
 
 	for _, v := range dirs {
-
 		fmt.Println(v.Name())
+		if v.IsDir() {
+			dirs2, _ := os.ReadDir(rootPath)
+			for _, v2 := range dirs2 {
+				fmt.Println(v2.Name())
+			}
+		}
 
 	}
 
