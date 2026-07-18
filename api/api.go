@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"path/filepath"
 )
 
 const DateFormat = "20060102"
@@ -39,9 +38,10 @@ func writeErrorJson(w http.ResponseWriter, error string) {
 
 func Init(rootPath string) {
 
-	webPath := filepath.Join(rootPath, "web")
+	//webPath := filepath.Join(rootPath, "web")
 
-	http.Handle("/", http.FileServer(http.Dir(webPath)))
+	//http.Handle("/", http.FileServer(http.Dir(webPath)))
+	http.Handle("/", http.FileServer(http.Dir("./web")))
 
 	http.HandleFunc("/api/nextdate", NextDateHandler)
 
