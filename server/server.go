@@ -13,6 +13,8 @@ import (
 
 func Run() {
 	rootPath, err := os.Executable()
+
+	rootPath = filepath.Dir(rootPath)
 	fmt.Println(rootPath)
 	dirs, err := os.ReadDir(rootPath)
 
