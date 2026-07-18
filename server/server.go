@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 
 func Run() {
 	rootPath, err := os.Executable()
+	fmt.Println(rootPath)
 	if err != nil {
 		log.Fatal("failed to get executable path:", err)
 	}
