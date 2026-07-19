@@ -1,15 +1,13 @@
 FROM golang:1.25.0
 
-WORKDIR /usr/src/app
-
-COPY go.mod go.sum ./
-
-RUN go mod download
+WORKDIR /app
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /planning-app
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o todo-app .
 
 EXPOSE ${TODO_PORT}
 
-CMD ["/planning-app"] 
+CMD ["./todo-app"] 
