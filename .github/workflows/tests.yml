@@ -10,6 +10,11 @@ jobs:
       matrix:
         go-version: [1.24.x]
   
+    env:
+      TODO_PORT: "7540"
+      TODO_WEB_DIR: "${{ github.workspace }}/web"
+      TODO_DBFILE: "${{ github.workspace }}/scheduler.db"
+    
     steps:
     - uses: actions/checkout@v4
 

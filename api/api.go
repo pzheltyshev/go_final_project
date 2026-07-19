@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -39,8 +38,7 @@ func writeErrorJson(w http.ResponseWriter, error string) {
 
 func Init(webPath string) {
 
-	fmt.Println(webPath)
-	http.Handle("/", http.FileServer(http.Dir("./web")))
+	http.Handle("/", http.FileServer(http.Dir(webPath)))
 
 	http.HandleFunc("/api/nextdate", NextDateHandler)
 
