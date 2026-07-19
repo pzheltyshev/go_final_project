@@ -38,7 +38,7 @@ func writeErrorJson(w http.ResponseWriter, error string) {
 
 func Init(webPath string) {
 
-	http.Handle("/", http.FileServer(http.Dir(webPath)))
+	http.Handle("/", http.FileServer(http.Dir("./web")))
 
 	http.HandleFunc("/api/nextdate", NextDateHandler)
 
