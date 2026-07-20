@@ -33,26 +33,26 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 
 		matched, err := regexp.MatchString(pattern, searchValue)
 		if err != nil {
-			writeErrorJson(w, "Wrong search param")
+			writeErrorJson(w, "Wrong search param", http.StatusUnprocessableEntity)
 			return
 		}
 
 		if matched {
 			date, err := time.Parse("02.01.2006", searchValue)
 			if err != nil {
-				writeErrorJson(w, "Invalid date format")
+				writeErrorJson(w, "Invalid date format", http.StatusUnprocessableEntity)
 				return
 			}
-			tasks, err = db.TasksByDate(date.Format(DateFormat), 50)
+			tasks, err = db.TasksByDate(date.Format(DateFormat), recordLimit)
 		} else {
-			tasks, err = db.TasksByTitle(searchValue, 50)
+			tasks, err = db.TasksByTitle(searchValue, recordLimit)
 		}
 	} else {
-		tasks, err = db.Tasks(50)
+		tasks, err = db.Tasks(recordLimit)
 	}
 
 	if err != nil {
-		writeErrorJson(w, "Couldn't get tasks")
+		writeErrorJson(w, "Couldn't get tasks", http.StatusInternalServerError)
 		return
 	}
 
@@ -66,7 +66,7 @@ func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task, err := db.GetTask(id)
 
 	if err != nil {
-		writeErrorJson(w, "Couldn't fill task by id")
+		writeErrorJson(w, "Couldn't fill task by id", http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -85,30 +85,30 @@ func PutTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
-		writeErrorJson(w, "Couldn't get updated task")
+		writeErrorJson(w, "Couldn't get updated task", http.StatusBadRequest)
 		return
 	}
 
 	err = json.Unmarshal(body, &task)
 	if err != nil {
-		writeErrorJson(w, "Invalid task format")
+		writeErrorJson(w, "Invalid task format", http.StatusUnprocessableEntity)
 		return
 	}
 
 	if task.Title == "" {
-		writeErrorJson(w, "Title is required")
+		writeErrorJson(w, "Title is required", http.StatusUnprocessableEntity)
 		return
 	}
 
 	err = checkDate(&task)
 	if err != nil {
-		writeErrorJson(w, err.Error())
+		writeErrorJson(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
 	err = db.UpdateTask(&task)
 	if err != nil {
-		writeErrorJson(w, "Couldn't update task")
+		writeErrorJson(w, "Couldn't update task", http.StatusInternalServerError)
 		return
 	}
 
@@ -121,27 +121,27 @@ func DoneTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeErrorJson(w, "Couldn't get task by id")
+		writeErrorJson(w, "Couldn't get task by id", http.StatusInternalServerError)
 		return
 	}
 
 	if len(task.Repeat) == 0 {
 		err = db.DeleteTask(id)
 		if err != nil {
-			writeErrorJson(w, "Couldn't delete task")
+			writeErrorJson(w, "Couldn't delete task", http.StatusUnprocessableEntity)
 			return
 		}
 
 	} else {
 		nextDate, err := NextDate(time.Now(), task.Date, task.Repeat)
 		if err != nil {
-			writeErrorJson(w, "Couldn't get next date")
+			writeErrorJson(w, "Couldn't get next date", http.StatusUnprocessableEntity)
 			return
 		}
 
 		err = db.UpdateDate(nextDate, id)
 		if err != nil {
-			writeErrorJson(w, "Couldn't update date")
+			writeErrorJson(w, "Couldn't update date", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -157,7 +157,7 @@ func DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeErrorJson(w, "Couldn't delete task")
+		writeErrorJson(w, "Couldn't delete task", http.StatusInternalServerError)
 		return
 	}
 

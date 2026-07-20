@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
 const DateFormat = "20060102"
+const recordLimit = 50
 
 func writeJson(w http.ResponseWriter, data any) {
 
@@ -16,11 +18,16 @@ func writeJson(w http.ResponseWriter, data any) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	_, err = w.Write(resp)
+
+	if err != nil {
+		log.Printf("Failed to write response: %v", err)
+		return
+	}
 
 }
 
-func writeErrorJson(w http.ResponseWriter, error string) {
+func writeErrorJson(w http.ResponseWriter, error string, statusCode int) {
 
 	resp, err := json.Marshal(struct {
 		Error string `json:"error"`
@@ -31,8 +38,13 @@ func writeErrorJson(w http.ResponseWriter, error string) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write(resp)
+	w.WriteHeader(statusCode)
+	_, err = w.Write(resp)
+
+	if err != nil {
+		log.Printf("Failed to write response: %v", err)
+		return
+	}
 
 }
 
@@ -40,7 +52,7 @@ func Init(webPath string) {
 
 	http.Handle("/", http.FileServer(http.Dir(webPath)))
 
-	http.HandleFunc("/api/nextdate", NextDateHandler)
+	http.HandleFunc("GET /api/nextdate", NextDateHandler)
 
 	http.HandleFunc("POST /api/task", AddTaskHandler)
 

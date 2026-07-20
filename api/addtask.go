@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -44,37 +43,28 @@ func checkDate(task *db.Task) error {
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
-	var buf bytes.Buffer
 
-	_, err := buf.ReadFrom(r.Body)
-
-	defer r.Body.Close()
+	err := json.NewDecoder(r.Body).Decode(&task)
 
 	if err != nil {
-		writeErrorJson(w, err.Error())
-		return
-	}
-
-	err = json.Unmarshal(buf.Bytes(), &task)
-	if err != nil {
-		writeErrorJson(w, err.Error())
+		writeErrorJson(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if task.Title == "" {
-		writeErrorJson(w, "Title is required")
+		writeErrorJson(w, "Title is required", http.StatusUnprocessableEntity)
 		return
 	}
 
 	err = checkDate(&task)
 	if err != nil {
-		writeErrorJson(w, err.Error())
+		writeErrorJson(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
 	id, err := db.AddTask(&task)
 	if err != nil {
-		writeErrorJson(w, err.Error())
+		writeErrorJson(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

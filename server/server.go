@@ -45,7 +45,8 @@ func Run() {
 
 	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatal("failed to start server:", err)
+		log.Println("failed to start server:", err)
+		return
 	}
 
 }

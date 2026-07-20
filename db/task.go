@@ -59,6 +59,10 @@ func Tasks(limit int) ([]*Task, error) {
 		tasks = append(tasks, &task)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error during iteration: %w", err)
+	}
+
 	return tasks, nil
 }
 
@@ -85,6 +89,10 @@ func TasksByDate(dateStr string, limit int) ([]*Task, error) {
 		tasks = append(tasks, &task)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error during iteration: %w", err)
+	}
+
 	return tasks, nil
 }
 
@@ -109,6 +117,10 @@ func TasksByTitle(title string, limit int) ([]*Task, error) {
 			return nil, err
 		}
 		tasks = append(tasks, &task)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error during iteration: %w", err)
 	}
 
 	return tasks, nil
